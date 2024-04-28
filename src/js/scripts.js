@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+const gltfLoader = new GLTFLoader()
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -7,6 +10,9 @@ document.body.appendChild(renderer.domElement);
 
 // Sets the color of the background
 renderer.setClearColor(0xFEFEFE);
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -17,11 +23,44 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 // Sets orbit control to move the camera around
-const orbit = new OrbitControls(camera, renderer.domElement);
+//const orbit = new OrbitControls(camera, renderer.domElement);
 
 // Camera positioning
-camera.position.set(6, 8, 14);
-orbit.update();
+camera.position.set(0, 10, 6);
+camera.lookAt(new THREE.Vector3(0, 6, 2));
+
+
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+directionalLight.position.y = 10;
+directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+
+scene.add(THREE.DirectionalLight);
+
+
+const ambientLight = new THREE.AmbientLight(0xA3A3A3, 0.3);
+scene.add(ambientLight);
+
+
+gltfLoader.load('./assets/kitchen_table.glb', function(glb) {
+    const model = glb.scene;
+    scene.add(model);
+    model.rotateY(Math.PI / 2);
+    model.scale.set(0.35, 0.35, 0.35);
+    model.position.set(0.25, 0, 0);
+
+    model.traverse(function(node){
+        if(node.isMesh)
+            node.recieveShadow = true;
+    });
+})
+
+
+
+
+
+
 
 // Sets a 12 by 12 gird helper
 const gridHelper = new THREE.GridHelper(12, 12);
